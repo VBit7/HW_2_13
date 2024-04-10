@@ -6,7 +6,7 @@ import sqlalchemy as sqa
 import sqlalchemy.ext.asyncio as asyncio
 
 import src.db as db
-# from src.contacts import routes as contacts_routes
+from src.contacts import routes as contacts_routes
 from src.auth import routes as auth_routes
 
 
@@ -23,7 +23,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_routes.router, prefix="/api")
-# app.include_router(contacts.router, prefix="/api")
+app.include_router(contacts_routes.router, prefix="/api")
 
 
 @app.get('/')

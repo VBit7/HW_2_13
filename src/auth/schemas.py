@@ -5,7 +5,7 @@ import src.auth.models as auth_models
 class UserSchema(BaseModel):
     username: str = Field(min_length=3, max_length=50)
     email: EmailStr
-    password: str = Field(min_length=6, max_length=8)
+    password: str = Field(min_length=5, max_length=15)
 
 
 class UserResponse(BaseModel):
