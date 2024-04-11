@@ -28,7 +28,7 @@ class User(Base):
     created_at: orm.Mapped[datetime] = orm.mapped_column(sqa.DateTime, default=sqa.func.now())
     updated_at: orm.Mapped[datetime] = orm.mapped_column(sqa.DateTime, default=sqa.func.now(), onupdate=sqa.func.now())
     role: orm.Mapped[sqa.Enum] = orm.mapped_column('role', sqa.Enum(Role), default=Role.user, nullable=True)
-
+    confirmed: orm.Mapped[bool] = orm.mapped_column(sqa.Boolean, default=False, nullable=True)
 
 class Contact(Base):
     __tablename__ = 'contacts'

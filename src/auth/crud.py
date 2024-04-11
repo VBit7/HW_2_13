@@ -33,3 +33,18 @@ async def create_user(body: auth_schemas.UserSchema, db: AsyncSession = Depends(
 async def update_token(user: auth_models.User, token: str | None, db: AsyncSession):
     user.refresh_token = token
     await db.commit()
+
+
+# async def confirmed_email(email: str, db: AsyncSession = Depends(db.get_db)) -> None:
+async def confirmed_email(email: str, db: AsyncSession) -> None:
+    user = await get_user_by_email(email, db)
+    user.confirmed = True
+    await db.commit()
+
+
+async def update_avatar_url(email: str, url: str | None, db: AsyncSession):
+    user = await get_user_by_email(email, db)
+    user.avatar = url
+    await db.commit()
+    await db.refresh(user)
+    return user

@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 import src.db as db
 import src.auth.crud as repository_users
 
-from src.config import SECRET_KEY, ALGORITHM
+from src.config import config
 
 
 class Auth:
@@ -31,7 +31,7 @@ class Auth:
         else:
             expire = datetime.utcnow() + timedelta(minutes=15)
         to_encode.update({"iat": datetime.utcnow(), "exp": expire, "scope": "access_token"})
-        encoded_access_token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+        encoded_access_token = jwt.encode(to_encode, config.SECRET_KEY_JWT, algorithm=config.ALGORITHM)
         return encoded_access_token
 
     async def create_refresh_token(self, data: dict, expires_delta: typing.Optional[float] = None):
@@ -41,12 +41,12 @@ class Auth:
         else:
             expire = datetime.utcnow() + timedelta(days=7)
         to_encode.update({"iat": datetime.utcnow(), "exp": expire, "scope": "refresh_token"})
-        encoded_refresh_token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+        encoded_refresh_token = jwt.encode(to_encode, config.SECRET_KEY_JWT, algorithm=config.ALGORITHM)
         return encoded_refresh_token
 
     async def decode_refresh_token(self, refresh_token: str):
         try:
-            payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+            payload = jwt.decode(refresh_token, config.SECRET_KEY_JWT, algorithms=[config.ALGORITHM])
             if payload['scope'] == 'refresh_token':
                 email = payload['sub']
                 return email
@@ -73,7 +73,7 @@ class Auth:
 
         try:
             # Decode JWT
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            payload = jwt.decode(token, config.SECRET_KEY_JWT, algorithms=[config.ALGORITHM])
             if payload['scope'] == 'access_token':
                 email = payload["sub"]
                 if email is None:
@@ -87,6 +87,25 @@ class Auth:
         if user is None:
             raise credentials_exception
         return user
+
+    def create_email_token(self, data: dict):
+        to_encode = data.copy()
+        expire = datetime.utcnow() + timedelta(days=7)
+        to_encode.update({"iat": datetime.utcnow(), "exp": expire})
+        token = jwt.encode(to_encode, config.SECRET_KEY_JWT, algorithm=config.ALGORITHM)
+        return token
+
+    async def get_email_from_token(self, token: str):
+        try:
+            payload = jwt.decode(token, config.SECRET_KEY_JWT, algorithms=[config.ALGORITHM])
+            email = payload["sub"]
+            return email
+        except JWTError as e:
+            print(e)
+            raise fastapi.HTTPException(
+                status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Invalid token for email verification"
+            )
 
 
 auth_service = Auth()
