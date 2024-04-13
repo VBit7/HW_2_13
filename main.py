@@ -1,18 +1,22 @@
 import fastapi
+import redis.asyncio as redis
 import uvicorn
 
 import fastapi.middleware.cors as cors
 import sqlalchemy as sqa
 import sqlalchemy.ext.asyncio as asyncio
+import fastapi_limiter
 
 import src.db as db
 from src.contacts import routes as contacts_routes
 from src.auth import routes as auth_routes
+from src.users import routes as users_routes
+from src.config import config
 
 
 app = fastapi.FastAPI()
 
-origins = ["*"]
+origins = ["http://localhost:8000"]
 
 app.add_middleware(
     cors.CORSMiddleware,
@@ -23,7 +27,19 @@ app.add_middleware(
 )
 
 app.include_router(auth_routes.router, prefix="/api")
+app.include_router(users_routes.router, prefix="/api")
 app.include_router(contacts_routes.router, prefix="/api")
+
+
+@app.on_event("startup")
+async def startup():
+    r = await redis.Redis(
+        host=config.REDIS_DOMAIN,
+        port=config.REDIS_PORT,
+        db=0,
+        password=config.REDIS_PASSWORD
+    )
+    await fastapi_limiter.FastAPILimiter.init(r)
 
 
 @app.get('/')
@@ -34,7 +50,6 @@ def index():
 @app.get("/api/healthchecker")
 async def healthchecker(db: asyncio.AsyncSession = fastapi.Depends(db.get_db)):
     try:
-        # Make request
         result = await db.execute(sqa.text("SELECT 1"))
         result = result.fetchone()
         if result is None:

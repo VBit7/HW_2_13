@@ -8,11 +8,18 @@ import src.contacts.schemas as contacts_schemas
 import src.contacts.crud as contacts_crud
 from src.auth.services import auth_service
 
+from fastapi_limiter.depends import RateLimiter
+
 
 router = fastapi.APIRouter(prefix='/contacts', tags=["contacts"])
 
 
-@router.get("/", response_model=list[contacts_schemas.ContactResponse])
+@router.get(
+    "/",
+    response_model=list[contacts_schemas.ContactResponse],
+    description='No more than 10 requests per minute',
+    dependencies=[fastapi.Depends(RateLimiter(times=10, seconds=60))]
+)
 async def get_contacts(
         limit: int = fastapi.Query(10, ge=10, le=500),
         offset: int = fastapi.Query(0, ge=0),
@@ -23,7 +30,12 @@ async def get_contacts(
     return contacts
 
 
-@router.get("/{contact_id}", response_model=contacts_schemas.ContactResponse)
+@router.get(
+    "/{contact_id}",
+    response_model=contacts_schemas.ContactResponse,
+    description='No more than 10 requests per minute',
+    dependencies=[fastapi.Depends(RateLimiter(times=10, seconds=60))]
+)
 async def get_contact(
         contact_id: int = fastapi.Path(ge=1),
         db: asyncio.AsyncSession = fastapi.Depends(db.get_db),
@@ -35,7 +47,12 @@ async def get_contact(
     return contact
 
 
-@router.post("/", response_model=contacts_schemas.ContactResponse, status_code=fastapi.status.HTTP_201_CREATED)
+@router.post(
+    "/", response_model=contacts_schemas.ContactResponse,
+    status_code=fastapi.status.HTTP_201_CREATED,
+    description = 'No more than 5 requests per minute',
+    dependencies = [fastapi.Depends(RateLimiter(times=5, seconds=60))]
+)
 async def create_contact(
         body: contacts_schemas.ContactSchema,
         db: asyncio.AsyncSession = fastapi.Depends(db.get_db),
@@ -58,7 +75,12 @@ async def update_contact(
     return contact
 
 
-@router.delete("/{contact_id}", status_code=fastapi.status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{contact_id}",
+    status_code=fastapi.status.HTTP_204_NO_CONTENT,
+    description = 'No more than 5 requests per minute',
+    dependencies = [fastapi.Depends(RateLimiter(times=5, seconds=60))]
+)
 async def delete_contact(
         contact_id: int = fastapi.Path(ge=1),
         db: asyncio.AsyncSession = fastapi.Depends(db.get_db),
@@ -68,7 +90,12 @@ async def delete_contact(
     return contact
 
 
-@router.get("/search/{query}", response_model=list[contacts_schemas.ContactResponse])
+@router.get(
+    "/search/{query}",
+    response_model=list[contacts_schemas.ContactResponse],
+    description = 'No more than 10 requests per minute',
+    dependencies = [fastapi.Depends(RateLimiter(times=10, seconds=60))]
+)
 async def search_contacts(
         query: str,
         db: asyncio.AsyncSession = fastapi.Depends(db.get_db),
@@ -80,7 +107,12 @@ async def search_contacts(
     return contacts
 
 
-@router.get("/upcoming_birthdays/", response_model=list[contacts_schemas.ContactResponse])
+@router.get(
+    "/upcoming_birthdays/",
+    response_model=list[contacts_schemas.ContactResponse],
+    description = 'No more than 10 requests per minute',
+    dependencies = [fastapi.Depends(RateLimiter(times=10, seconds=60))]
+)
 async def upcoming_birthdays(
         db: asyncio.AsyncSession = fastapi.Depends(db.get_db),
         user: models.User = fastapi.Depends(auth_service.get_current_user),

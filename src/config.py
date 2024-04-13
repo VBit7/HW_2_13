@@ -4,11 +4,6 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    PG_DB: str = 'base'
-    PG_USER: str = 'user'
-    PG_PASSWORD: str = 'password'
-    PG_PORT: int = 5432
-    PG_DOMAIN: str = 'host'
     DB_URL: str = "postgresql+asyncpg://user:password@localhost:5432/base"
     SECRET_KEY_JWT: str = "1234567890"
     ALGORITHM: str = "HS256"
@@ -31,7 +26,11 @@ class Settings(BaseSettings):
             raise ValueError("algorithm must be HS256 or HS512")
         return v
 
-    model_config = ConfigDict(extra='ignore', env_file=".env", env_file_encoding="utf-8")  # noqa
+    model_config = ConfigDict(
+        extra='ignore',
+        env_file=".env",
+        env_file_encoding="utf-8"
+    )
 
 
 config = Settings()
