@@ -44,9 +44,8 @@ async def get_current_user(
     user: User = fastapi.Depends(auth_service.get_current_user),
     db: AsyncSession = fastapi.Depends(get_db),
 ):
-    public_id = f"Web16/{user.email}"
+    public_id = f"HW13/{user.email}"
     res = cloudinary.uploader.upload(file.file, public_id=public_id, owerite=True)
-    print(res)
     res_url = cloudinary.CloudinaryImage(public_id).build_url(
         width=250, height=250, crop="fill", version=res.get("version")
     )
