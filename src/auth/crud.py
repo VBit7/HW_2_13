@@ -35,7 +35,6 @@ async def update_token(user: auth_models.User, token: str | None, db: AsyncSessi
     await db.commit()
 
 
-# async def confirmed_email(email: str, db: AsyncSession = Depends(db.get_db)) -> None:
 async def confirmed_email(email: str, db: AsyncSession) -> None:
     user = await get_user_by_email(email, db)
     user.confirmed = True
